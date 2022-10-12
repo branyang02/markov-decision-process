@@ -43,7 +43,7 @@ def build_mazeMDP():
 	---------------------
 
 	Goal state: 15
-	Bad state: 9
+	Bad state: 5, 9
 	End state: 16
 
 	The end state is an absorbing state that the agent transitions

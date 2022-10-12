@@ -8,9 +8,13 @@ class DynamicProgramming:
 		self.discount = MDP.discount
 		self.nStates = MDP.nStates
 		self.nActions = MDP.nActions
+		self.up = 0
+		self.down = 1
+		self.left = 2
+		self.right = 3
 
 
-	def valueIteration(self, initialV, nIterations=np.inf, tolerance=0.01):
+	def valueIteration(self, initialV, nIterations=np.inf, tolerance=0.00):
 		'''Value iteration procedure
 		V <-- max_a R^a + gamma T^a V
 
@@ -27,11 +31,30 @@ class DynamicProgramming:
 
 		# temporary values to ensure that the code compiles until this
 		# function is coded
-		policy = np.zeros(self.nStates)
+		policy = np.zeros(self.nStates) # number corresponds to each action at each state
 		V = np.zeros(self.nStates)
-		iterId = 0
-		epsilon = 0
+		iterId = 0 
+		epsilon = tolerance
 
+
+		while iterId < nIterations:
+			tempV = np.zeros(17)
+			for current_state in range(17):
+				up_value = sum(self.T[self.up, current_state] * (self.R[self.up][current_state] + self.discount * V))
+				down_value = sum(self.T[self.down, current_state] * (self.R[self.down][current_state] + self.discount * V))
+				left_value = sum(self.T[self.left, current_state] * (self.R[self.left][current_state] + self.discount * V))
+				right_value = sum(self.T[self.right, current_state] * (self.R[self.right][current_state] + self.discount * V))
+
+				action_list = [up_value, down_value, left_value, right_value]
+				tempV[current_state] = max(action_list)
+				policy[current_state] = action_list.index(max(action_list))
+			if False not in np.isclose(tempV, V, atol=epsilon):
+				break
+			iterId += 1
+			V = tempV
+
+		print(iterId)
+		
 		return [policy, V, iterId, epsilon]
 
 	def policyIteration_v1(self, initialPolicy, nIterations=np.inf, tolerance=0.01):
