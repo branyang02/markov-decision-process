@@ -14,7 +14,7 @@ class DynamicProgramming:
 		self.right = 3
 
 
-	def valueIteration(self, initialV, nIterations=np.inf, tolerance=0.00):
+	def valueIteration(self, initialV, nIterations=np.inf, tolerance=0.01):
 		'''Value iteration procedure
 		V <-- max_a R^a + gamma T^a V
 
@@ -48,7 +48,7 @@ class DynamicProgramming:
 				action_list = [up_value, down_value, left_value, right_value]
 				tempV[current_state] = max(action_list)
 				policy[current_state] = action_list.index(max(action_list))
-			if False not in np.isclose(tempV, V, atol=epsilon):
+			if False not in np.isclose(tempV, V, rtol=epsilon):
 				break
 			iterId += 1
 			V = tempV
