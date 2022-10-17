@@ -281,7 +281,23 @@ up = 0
 down = 1
 left = 2
 right = 3
-discount = 0.9
+discount = 0.95
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # V = R[current_action]
 V = np.zeros(17)
 
@@ -324,4 +340,4 @@ print(policy[8:12])
 print(policy[12:17])
 print(policy)
 
-print (T.shape[0])
+print (count)
