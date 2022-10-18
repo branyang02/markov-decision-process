@@ -52,6 +52,7 @@ class DynamicProgramming:
 				break
 			iterId += 1
 			V = tempV
+		print(V)
 
 		return [policy, V, iterId, epsilon]
 
@@ -75,6 +76,10 @@ class DynamicProgramming:
 		policy = initialPolicy
 		V = np.zeros(self.nStates)
 		iterId = 0
+
+		# Policy Evaluation
+		
+		# Policy Improvement
 
 		return [policy, V, iterId]
 
