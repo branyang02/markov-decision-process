@@ -1,3 +1,4 @@
+from calendar import c
 from MDP import build_mazeMDP, print_policy
 import numpy as np
 
@@ -8,10 +9,6 @@ class DynamicProgramming:
 		self.discount = MDP.discount
 		self.nStates = MDP.nStates
 		self.nActions = MDP.nActions
-		self.up = 0
-		self.down = 1
-		self.left = 2
-		self.right = 3
 
 
 	def valueIteration(self, initialV, nIterations=np.inf, tolerance=0.01):
@@ -36,24 +33,53 @@ class DynamicProgramming:
 		iterId = 0 
 		epsilon = tolerance
 
+		# self.up = 0
+		# self.down = 1
+		# self.left = 2
+		# self.right = 3
+
+		# while iterId < nIterations:
+		# 	tempV = np.zeros(self.nStates)
+		# 	for current_state in range(self.nStates):
+		# 		up_value = sum(self.T[self.up, current_state] * (self.R[self.up][current_state] + self.discount * V))
+		# 		down_value = sum(self.T[self.down, current_state] * (self.R[self.down][current_state] + self.discount * V))
+		# 		left_value = sum(self.T[self.left, current_state] * (self.R[self.left][current_state] + self.discount * V))
+		# 		right_value = sum(self.T[self.right, current_state] * (self.R[self.right][current_state] + self.discount * V))
+
+		# 		action_list = [up_value, down_value, left_value, right_value]
+		# 		tempV[current_state] = max(action_list)
+		# 		policy[current_state] = action_list.index(max(action_list))
+		# 	if False not in np.isclose(tempV, V, rtol=epsilon):
+		# 		break
+		# 	iterId += 1
+		# 	V = tempV
+		# print(V)
 
 		while iterId < nIterations:
-			tempV = np.zeros(self.nStates)
-			for current_state in range(self.nStates):
-				up_value = sum(self.T[self.up, current_state] * (self.R[self.up][current_state] + self.discount * V))
-				down_value = sum(self.T[self.down, current_state] * (self.R[self.down][current_state] + self.discount * V))
-				left_value = sum(self.T[self.left, current_state] * (self.R[self.left][current_state] + self.discount * V))
-				right_value = sum(self.T[self.right, current_state] * (self.R[self.right][current_state] + self.discount * V))
-
-				action_list = [up_value, down_value, left_value, right_value]
-				tempV[current_state] = max(action_list)
-				policy[current_state] = action_list.index(max(action_list))
-			if False not in np.isclose(tempV, V, rtol=epsilon):
-				break
 			iterId += 1
-			V = tempV
-		print(V)
-
+			delta = 0
+			for current_state in range(self.nStates):
+				v = V[current_state]
+				max_value = -np.inf
+				for action in range(self.nActions):
+					value = sum(self.T[action, current_state] * (self.R[action][current_state] + (self.discount * V)))
+					if value > max_value:
+						max_value = value
+				V[current_state] = max_value
+				delta = max(delta, abs(v - V[current_state]))
+			if delta < epsilon:
+				break
+		# output a deterministic policy
+		for current_state in range(self.nStates):
+			max_value = -np.inf
+			selected_action = int(policy[current_state])
+			for action in range(self.nActions):
+				value = sum(self.T[action, current_state] * (self.R[action][current_state] + (self.discount * V)))
+				if value > max_value:
+					max_value = value
+					selected_action = action
+			policy[current_state] = selected_action
+			
 		return [policy, V, iterId, epsilon]
 
 	def policyIteration_v1(self, initialPolicy, nIterations=np.inf, tolerance=0.01):
@@ -76,10 +102,47 @@ class DynamicProgramming:
 		policy = initialPolicy
 		V = np.zeros(self.nStates)
 		iterId = 0
-
-		# Policy Evaluation
 		
-		# Policy Improvement
+		self.evaluatePolicy_SolvingSystemOfLinearEqs(np.zeros(self.nStates))
+
+		while iterId < nIterations:
+			iterId += 1
+			# Policy Evaluation
+			while True:
+				delta = 0
+				for current_state in range(self.nStates):
+					v = V[current_state]
+					action = int(policy[current_state])
+					V[current_state] = sum(self.T[action, current_state] * (self.R[action][current_state] + (self.discount * V)))
+					delta = max(delta, abs(v - V[current_state]))
+				if delta < tolerance:
+					break
+			
+			# Policy Improvement
+			policy, policy_stable = self.extractPolicy(V)
+			if policy_stable is True:
+				break
+
+
+			# policy_stable = True
+			# for current_state in range(self.nStates):
+			# 	old_action = int(policy[current_state])
+			# 	# pick action that maximizes value
+			# 	max_value = -np.inf
+			# 	selected_action = old_action
+			# 	for action in range(self.nActions):
+			# 		value = sum(self.T[action, current_state] * (self.R[action][current_state] + (self.discount * V)))
+			# 		if value > max_value:
+			# 			max_value = value
+			# 			selected_action = action
+			# 	policy[current_state] = selected_action
+			# 	if old_action != policy[current_state]:
+			# 		policy_stable = False
+			# if policy_stable is True:
+			# 	break
+		# print(policy)
+		# print(V)
+		print(iterId)
 
 		return [policy, V, iterId]
 
@@ -94,11 +157,23 @@ class DynamicProgramming:
 		Output:
 		policy -- Policy: array of |S| entries'''
 
-		# temporary values to ensure that the code compiles until this
-		# function is coded
-		policy = np.zeros(self.nStates)
+		policy_stable = True
+		for current_state in range(self.nStates):
+			old_action = int(policy[current_state])
+			# pick action that maximizes value
+			max_value = -np.inf
+			selected_action = old_action
+			for action in range(self.nActions):
+				value = sum(self.T[action, current_state] * (self.R[action][current_state] + (self.discount * V)))
+				if value > max_value:
+					max_value = value
+					selected_action = action
+			policy[current_state] = selected_action
+			if old_action != policy[current_state]:
+					policy_stable = False
 
-		return policy
+		
+		return policy, policy_stable
 
 
 	def evaluatePolicy_SolvingSystemOfLinearEqs(self, policy):
@@ -113,8 +188,12 @@ class DynamicProgramming:
 
 		# temporary values to ensure that the code compiles until this
 		# function is coded
-		V = np.zeros(self.nStates)
-
+		# V = np.zeros(self.nStates)
+		index = 0
+		print(self.discount * self.T[2])
+		print(np.dot(np.linalg.inv((np.identity(self.nStates) - (self.discount * self.T[3]))), self.R[2]))
+		index += 1
+		exit()
 		return V
 
 	def policyIteration_v2(self, initialPolicy, initialV, nPolicyEvalIterations=5, nIterations=np.inf, tolerance=0.01):
@@ -142,6 +221,8 @@ class DynamicProgramming:
 		iterId = 0
 		epsilon = 0
 
+
+
 		return [policy, V, iterId, epsilon]
 
 	def evaluatePolicy_IterativeUpdate(self, policy, initialV, nIterations=np.inf):
@@ -163,6 +244,9 @@ class DynamicProgramming:
 		V = np.zeros(self.nStates)
 		iterId = 0
 		epsilon = 0
+		
+
+
 
 		return [V, iterId, epsilon]
 

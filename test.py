@@ -1,6 +1,8 @@
 from calendar import c
 from cmath import isclose
+from dis import dis
 from operator import le
+from tkinter import NS
 import numpy as np
 import sys
 np.set_printoptions(threshold=sys.maxsize)
@@ -273,16 +275,14 @@ R[:, 9] = -70;  # bad state
 R[:, 5] = -70;  # bad state
 R[:, 16] = 0;  # end state
 
-#print(R)
+# #print(R)
 
-# current_state = 15
-current_action = 0
-up = 0
-down = 1
-left = 2
-right = 3
-discount = 0.95
-
+# # # current_state = 15
+# # up = 0
+# # down = 1
+# # left = 2
+# # right = 3
+# # discount = 0.95
 
 
 
@@ -298,46 +298,98 @@ discount = 0.95
 
 
 
-# V = R[current_action]
-V = np.zeros(17)
 
-#compute value for each action
-# action up a = 0
-# R(s,a,s') + gamma*Value
-# print (T[up, current_state] * (R[up] + discount * V))
-# print(T[up, current_state])
-# print(R[up][current_state] + discount * R[up])
+# # # V = R[current_action]
+# # V = np.zeros(17)
 
-count = 0
-policy = np.zeros(17)
-while count < np.inf:
-    tempV = np.zeros(17)
-    for current_state in range(17):
+# # #compute value for each action
+# # # action up a = 0
+# # # R(s,a,s') + gamma*Value
+# # # print (T[up, current_state] * (R[up] + discount * V))
+# # # print(T[up, current_state])
+# # # print(R[up][current_state] + discount * R[up])
 
-        up_value = sum(T[up, current_state] * (R[up][current_state] + discount * V))
-        down_value = sum(T[down, current_state] * (R[down][current_state] + discount * V))
-        left_value = sum(T[left, current_state] * (R[left][current_state] + discount * V))
-        right_value = sum(T[right, current_state] * (R[right][current_state] + discount * V))
+# # count = 0
+# # policy = np.zeros(17)
+# # while count < np.inf:
+# #     tempV = np.zeros(17)
+# #     for current_state in range(17):
+# #         up_value = sum(T[up, current_state] * (R[up][current_state] + discount * V))
+# #         down_value = sum(T[down, current_state] * (R[down][current_state] + discount * V))
+# #         left_value = sum(T[left, current_state] * (R[left][current_state] + discount * V))
+# #         right_value = sum(T[right, current_state] * (R[right][current_state] + discount * V))
 
-        action_list = [up_value, down_value, left_value, right_value]
-        tempV[current_state] = max(action_list)
-        policy[current_state] = action_list.index(max(action_list))
-    # print(tempV)
-    # print(V)
-    count += 1
-    if False not in np.isclose(tempV, V, rtol=0.01):
-        break
-    V = tempV
+# #         action_list = [up_value, down_value, left_value, right_value]
+# #         tempV[current_state] = max(action_list)
+# #         policy[current_state] = action_list.index(max(action_list))
+# #     # print(tempV)
+# #     # print(V)
+# #     count += 1
+# #     if False not in np.isclose(tempV, V, rtol=0.01):
+# #         break
+# #     V = tempV
 
-print(V[:4])
-print(V[4:8])
-print(V[8:12])
-print(V[12:17])
+# # print(V[:4])
+# # print(V[4:8])
+# # print(V[8:12])
+# # print(V[12:17])
 
-print(policy[:4])
-print(policy[4:8])
-print(policy[8:12])
-print(policy[12:17])
-print(policy)
+# # print(policy[:4])
+# # print(policy[4:8])
+# # print(policy[8:12])
+# # print(policy[12:17])
+# # print(policy)
 
-print (count)
+# # print (count)
+
+# print("-----------------------------------------------------------------------------------------------")
+
+# nStates = 17
+# policy = np.zeros(nStates)
+# V = np.zeros(nStates)
+# iterID = 0
+# discount = 0.95
+# tolerance = 0.01
+# nActions  = 4
+# # print(R)
+
+# while True:
+#     iterID += 1
+#     while True:
+#         delta = 0
+#         for current_state in range(nStates):
+#             v = V[current_state]
+#             action = int(policy[current_state])
+#             V[current_state] = sum(T[action, current_state] * (R[action][current_state] + (discount * V)))
+#             delta = max(delta, abs(v - V[current_state]))
+#         if delta < tolerance:
+#             break
+
+#     print(iterID)
+#     print(V[:4])
+#     print(V[4:8])
+#     print(V[8:12])
+#     print(V[12:17])
+
+#     policy_stable = True
+#     for current_state in range(nStates):
+#         old_action = int(policy[current_state])
+#         # pick action that maximizes value
+#         max_value = -np.inf
+#         selected_action = old_action
+#         for action in range(nActions):
+#             value = sum(T[action, current_state] * (R[action][current_state] + (discount * V)))
+#             if value > max_value:
+#                 max_value = value
+#                 selected_action = action
+#         policy[current_state] = selected_action
+#         if old_action != policy[current_state]:
+#             policy_stable = False
+#     if policy_stable is True:
+#         break
+
+# print(iterID)
+# print(policy)
+
+print(T)
+print(R)
