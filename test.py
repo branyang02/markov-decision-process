@@ -391,5 +391,5 @@ R[:, 16] = 0;  # end state
 # print(iterID)
 # print(policy)
 
-print(T)
+print(T[0])
 print(R)

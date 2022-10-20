@@ -79,7 +79,7 @@ class DynamicProgramming:
 					max_value = value
 					selected_action = action
 			policy[current_state] = selected_action
-			
+		print(iterId)
 		return [policy, V, iterId, epsilon]
 
 	def policyIteration_v1(self, initialPolicy, nIterations=np.inf, tolerance=0.01):
@@ -103,47 +103,27 @@ class DynamicProgramming:
 		V = np.zeros(self.nStates)
 		iterId = 0
 		
-		self.evaluatePolicy_SolvingSystemOfLinearEqs(np.zeros(self.nStates))
-
 		while iterId < nIterations:
 			iterId += 1
+			# Policy Evaluation Linear Systems of Equations
+			V = self.evaluatePolicy_SolvingSystemOfLinearEqs(policy)
+	
 			# Policy Evaluation
-			while True:
-				delta = 0
-				for current_state in range(self.nStates):
-					v = V[current_state]
-					action = int(policy[current_state])
-					V[current_state] = sum(self.T[action, current_state] * (self.R[action][current_state] + (self.discount * V)))
-					delta = max(delta, abs(v - V[current_state]))
-				if delta < tolerance:
-					break
+			# while True:
+			# 	delta = 0
+			# 	for current_state in range(self.nStates):
+			# 		v = V[current_state]
+			# 		action = int(policy[current_state])
+			# 		V[current_state] = sum(self.T[action, current_state] * (self.R[action][current_state] + (self.discount * V)))
+			# 		delta = max(delta, abs(v - V[current_state]))
+			# 	if delta < tolerance:
+			# 		break
 			
 			# Policy Improvement
 			policy, policy_stable = self.extractPolicy(V)
 			if policy_stable is True:
 				break
-
-
-			# policy_stable = True
-			# for current_state in range(self.nStates):
-			# 	old_action = int(policy[current_state])
-			# 	# pick action that maximizes value
-			# 	max_value = -np.inf
-			# 	selected_action = old_action
-			# 	for action in range(self.nActions):
-			# 		value = sum(self.T[action, current_state] * (self.R[action][current_state] + (self.discount * V)))
-			# 		if value > max_value:
-			# 			max_value = value
-			# 			selected_action = action
-			# 	policy[current_state] = selected_action
-			# 	if old_action != policy[current_state]:
-			# 		policy_stable = False
-			# if policy_stable is True:
-			# 	break
-		# print(policy)
-		# print(V)
 		print(iterId)
-
 		return [policy, V, iterId]
 
 
@@ -172,7 +152,6 @@ class DynamicProgramming:
 			if old_action != policy[current_state]:
 					policy_stable = False
 
-		
 		return policy, policy_stable
 
 
@@ -189,11 +168,16 @@ class DynamicProgramming:
 		# temporary values to ensure that the code compiles until this
 		# function is coded
 		# V = np.zeros(self.nStates)
-		index = 0
-		print(self.discount * self.T[2])
-		print(np.dot(np.linalg.inv((np.identity(self.nStates) - (self.discount * self.T[3]))), self.R[2]))
-		index += 1
-		exit()
+		
+
+		# construct the Transition Matrix following current policy
+		Transition_Matrix = []
+		for i in range(self.nStates):
+			Transition_Matrix.append(self.T[int(policy[i])][i].tolist())
+		Transition_Matrix = np.array(Transition_Matrix)
+
+		# Calculate Value Function
+		V = np.dot(np.linalg.inv((np.identity(self.nStates) - (self.discount * Transition_Matrix))), self.R[0])
 		return V
 
 	def policyIteration_v2(self, initialPolicy, initialV, nPolicyEvalIterations=5, nIterations=np.inf, tolerance=0.01):
