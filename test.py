@@ -1,10 +1,12 @@
 from calendar import c
 from cmath import isclose
+from collections import defaultdict
 from dis import dis
 from operator import le
 from tkinter import NS
 import numpy as np
 import sys
+import matplotlib.pyplot as plt
 np.set_printoptions(threshold=sys.maxsize)
 
 # Transition function: |A| x |S| x |S'| array
@@ -391,5 +393,9 @@ R[:, 16] = 0;  # end state
 # print(iterID)
 # print(policy)
 
-print(T[0])
-print(R)
+# list = [1,2,3,4,5]
+# plt.plot(list)
+# plt.show()
+
+lst = list(range(0,101, 10))
+print(list(range(0, 100)))

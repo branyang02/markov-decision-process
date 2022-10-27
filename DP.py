@@ -28,7 +28,7 @@ class DynamicProgramming:
 
 		policy = np.zeros(self.nStates)
 		V = initialV
-		iterId = 0 
+		iterId = 0
 		epsilon = tolerance
 
 		while iterId < nIterations:
