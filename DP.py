@@ -12,19 +12,6 @@ class DynamicProgramming:
 
 
 	def valueIteration(self, initialV, nIterations=np.inf, tolerance=0.01):
-		'''Value iteration procedure
-		V <-- max_a R^a + gamma T^a V
-
-		Inputs:
-		initialV -- Initial value function: array of |S| entries
-		nIterations -- limit on the # of iterations: scalar (default: infinity)
-		tolerance -- threshold on ||V^n-V^n+1||_inf: scalar (default: 0.01)
-
-		Outputs:
-		policy -- Policy: array of |S| entries
-		V -- Value function: array of |S| entries
-		iterId -- # of iterations performed: scalar
-		epsilon -- ||V^n-V^n+1||_inf: scalar'''
 
 		policy = np.zeros(self.nStates)
 		V = initialV
@@ -55,24 +42,19 @@ class DynamicProgramming:
 					max_value = value
 					selected_action = action
 			policy[current_state] = selected_action
-		print("Number of Iterations of Value Iteration: ", iterId)
 
 		return [policy, V, iterId, epsilon]
 
+		# 	width = 4
+		# for i in range(len(V)):
+		# 	if (i+1) % width == 0 and i != 0:
+		# 		print(str(V[i]).rjust(2))
+		# 	else:
+		# 		print(str(V[i]).rjust(2), end = " ")
+
+		# return [policy, V, iterId]
+
 	def policyIteration_v1(self, initialPolicy, nIterations=np.inf, tolerance=0.01):
-		'''Policy iteration procedure: alternate between policy
-		evaluation (solve V^pi = R^pi + gamma T^pi V^pi) and policy
-		improvement (pi <-- argmax_a R^a + gamma T^a V^pi).
-
-		Inputs:
-		initialPolicy -- Initial policy: array of |S| entries
-		nIterations -- limit on # of iterations: scalar (default: inf)
-		tolerance -- threshold on ||V^n-V^n+1||_inf: scalar (default: 0.01)
-
-		Outputs:
-		policy -- Policy: array of |S| entries
-		V -- Value function: array of |S| entries
-		iterId -- # of iterations peformed by modified policy iteration: scalar'''
 
 		policy = initialPolicy
 		V = np.zeros(self.nStates)
@@ -86,20 +68,11 @@ class DynamicProgramming:
 			policy, policy_stable = self.extractPolicy(V)
 			if policy_stable is True:
 				break
-		print("Number of iterations of Policy Iteration: ", iterId)
 
 		return [policy, V, iterId]
 
 
 	def extractPolicy(self, V):
-		'''Procedure to extract a policy from a value function
-		pi <-- argmax_a R^a + gamma T^a V
-
-		Inputs:
-		V -- Value function: array of |S| entries
-
-		Output:
-		policy -- Policy: array of |S| entries'''
 
 		policy_stable = True
 		for current_state in range(self.nStates):
@@ -120,14 +93,6 @@ class DynamicProgramming:
 
 
 	def evaluatePolicy_SolvingSystemOfLinearEqs(self, policy):
-		'''Evaluate a policy by solving a system of linear equations
-		V^pi = R^pi + gamma T^pi V^pi
-
-		Input:
-		policy -- Policy: array of |S| entries
-
-		Ouput:
-		V -- Value function: array of |S| entries'''
 
 		# construct the Transition Matrix following current policy
 		Transition_Matrix = []
@@ -139,23 +104,8 @@ class DynamicProgramming:
 
 		return V
 
-	def policyIteration_v2(self, initialPolicy, initialV, nPolicyEvalIterations=5, nIterations=np.inf, tolerance=0.01):
-		'''Modified policy iteration procedure: alternate between
-		partial policy evaluation (repeat a few times V^pi <-- R^pi + gamma T^pi V^pi)
-		and policy improvement (pi <-- argmax_a R^a + gamma T^a V^pi)
+	def policyIteration_v2(self, initialPolicy, initialV, nPolicyEvalIterations=40, nIterations=np.inf, tolerance=0.01):
 
-		Inputs:
-		initialPolicy -- Initial policy: array of |S| entries
-		initialV -- Initial value function: array of |S| entries
-		nPolicyEvalIterations -- limit on # of iterations to be performed in each partial policy evaluation: scalar (default: 5)
-		nIterations -- limit on # of iterations to be performed in modified policy iteration: scalar (default: inf)
-		tolerance -- threshold on ||V^n-V^n+1||_inf: scalar (default: 0.01)
-
-		Outputs:
-		policy -- Policy: array of |S| entries
-		V -- Value function: array of |S| entries
-		iterId -- # of iterations peformed by modified policy iteration: scalar
-		epsilon -- ||V^n-V^n+1||_inf: scalar'''
 		V = initialV
 		policy = initialPolicy
 		iterId = 0
@@ -179,6 +129,8 @@ class DynamicProgramming:
 			policy, policy_stable = self.extractPolicy(V)
 			if policy_stable is True:
 				break
+		
+		print(iterId)
 
 		return [policy, V, iterId, epsilon]
 

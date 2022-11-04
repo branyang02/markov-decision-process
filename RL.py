@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 
 from MDP import build_mazeMDP, print_policy
 import numpy as np
+from scipy.interpolate import interp1d
+from scipy.interpolate import make_interp_spline, BSpline
 
 class ReinforcementLearning:
 	def __init__(self, mdp, sampleReward):
@@ -37,24 +39,9 @@ class ReinforcementLearning:
 		return [reward, nextState]
 
 	def OffPolicyTD(self, nEpisodes, epsilon=0.0, alpha=0.1):
-		'''
-		Off-policy TD (Q-learning) algorithm
-		Inputs:
-		nEpisodes -- # of episodes (one episode consists of a trajectory of nSteps that starts in s0
-		epsilon -- probability with which an action is chosen at random
-		Outputs:
-		Q -- final Q function (|A|x|S| array)
-		policy -- final policy
-		'''
-
-		# temporary values to ensure that the code compiles until this
-		# function is coded
 		Q = np.zeros([self.mdp.nActions,self.mdp.nStates])
 		policy = np.zeros(self.mdp.nStates,int)
-
 		cumulative_reward = []
-		average_reward = 0
-
 		for i_episode in range(1, nEpisodes+1):
 			if i_episode % 1000 == 0:
 				print("\rEpisode {}/{}.".format(i_episode, nEpisodes), end="")
@@ -78,50 +65,21 @@ class ReinforcementLearning:
 				state = next_state
 				if next_state == 16:  # if the terminal state is reached, break
 					break
-		
 			cumulative_reward.append(sum_rewards)
-			
-		#print(cumulative_reward)
-		print(len(cumulative_reward))
-		y = np.array(cumulative_reward)
-		x = np.array(list(range(1, nEpisodes+1)))
-
-		# plt.plot(cumulative_reward)
-		a, b = np.polyfit(x, y, 1)
-		print(a, b)
-		plt.scatter(x, y, s=5)
-		plt.plot(x, a*x+b, 'k--') 
-
-
-		plt.show()
-		return [Q,policy]
+		return [Q,policy, cumulative_reward]
 
 	def OffPolicyMC(self, nEpisodes, epsilon=0.1):
-		'''
-		Off-policy MC algorithm with epsilon-soft behavior policy
-		Inputs:
-		nEpisodes -- # of episodes (one episode consists of a trajectory of nSteps that starts in s0
-		epsilon -- probability with which an action is chosen at random
-		Outputs:
-		Q -- final Q function (|A|x|S| array)
-		policy -- final policy
-		'''
-
-		# temporary values to ensure that the code compiles until this
-		# function is coded
-		Q = np.zeros([self.mdp.nActions,self.mdp.nStates])  # action * state table
-		policy = np.zeros(self.mdp.nStates,int)  			# vector of size state
+		total_return = []
+		Q = np.zeros([self.mdp.nActions,self.mdp.nStates])
+		policy = np.zeros(self.mdp.nStates,int)  		
 		C = np.zeros_like(Q)
-		nSteps = 100_000
-
+		nSteps = 100_000_000
 		for i_episode in range(1, nEpisodes+1):
 			if i_episode % 1000 == 0:
 				print("\rEpisode {}/{}.".format(i_episode, nEpisodes), end="")
 				sys.stdout.flush()
-			
 			# Generate an episode using b: S0, A0, R1,...,ST-1, AT-1, RT
 			episode = []
-			# state = 0  # reset state
 			# make starting state random
 			state = np.random.randint(16)
 			
@@ -145,17 +103,63 @@ class ReinforcementLearning:
 				if action != policy[state]:
 					break
 				W = W / (1/self.mdp.nActions)
-
-		return [Q, policy]
+			
+			total_return.append(G)
+		
+		return [Q, policy, total_return]
 
 if __name__ == '__main__':
 	mdp = build_mazeMDP()
 	rl = ReinforcementLearning(mdp, np.random.normal)  # reward is Normally Distributed with varience 1.0
 
 	# Test Q-learning
-	[Q, policy] = rl.OffPolicyTD(nEpisodes=100, epsilon=0.1)
-	print_policy(policy)
+	# TD_num_episode = 10_000
+	# total_reward = [0] * TD_num_episode
+	# for i in range(10):
+	# 	[Q, policy, cumulative_reward] = rl.OffPolicyTD(nEpisodes=TD_num_episode, epsilon=0.1)
+	# 	print_policy(policy)
+	# 	for i in range(len(cumulative_reward)):
+	# 		total_reward[i] += cumulative_reward[i]
+
+	# for i in range(len(total_reward)):
+	# 	total_reward[i] = total_reward[i]/10
+
+	# y = np.array(total_reward)
+	# x = np.array(list(range(1, TD_num_episode+1)))
+
+	# xnew = np.linspace(x.min(), x.max(), 200) 
+
+	# #define spline with degree k=7
+	# spl = make_interp_spline(x, y, k=7)
+	# y_smooth = spl(xnew)
+
+	# #create smooth line chart 
+	# plt.plot(xnew, y_smooth)
+	# plt.show()
+
 
 	# Test Off-Policy MC
-	[Q, policy] = rl.OffPolicyMC(nEpisodes=30_000, epsilon=0.1)
-	print_policy(policy)
+	MC_num_episode = 30_000
+	total_reward = [0] * MC_num_episode
+	for i in range(10):
+		[Q, policy, total_return] = rl.OffPolicyMC(nEpisodes=MC_num_episode, epsilon=0.1)
+		print_policy(policy)
+		for i in range(len(total_return)):
+			total_reward[i] += total_return[i]
+	
+	for i in range(len(total_reward)):
+		total_reward[i] = total_reward[i]/10
+
+
+	y = np.array(total_reward)
+	x = np.array(list(range(1, MC_num_episode+1)))
+
+	xnew = np.linspace(x.min(), x.max(), 200) 
+
+	#define spline with degree k=7
+	spl = make_interp_spline(x, y, k=7)
+	y_smooth = spl(xnew)
+
+	#create smooth line chart 
+	plt.plot(xnew, y_smooth)
+	plt.show()
